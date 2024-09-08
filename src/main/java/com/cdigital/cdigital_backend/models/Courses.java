@@ -12,10 +12,10 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "courses")
 public class Courses {
-    
+    // propiedades
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id; 
+    private int id;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -30,7 +30,19 @@ public class Courses {
     @Column(name = "video", nullable = false)
     private String video;
 
+    // constructor
+    public Courses() {
+    }
 
+    public Courses(String title, String description, User user, String video) {
+
+        this.title = title;
+        this.description = description;
+        this.user = user;
+        this.video = video;
+    }
+
+    // getters and setters
     public int getId() {
         return this.id;
     }

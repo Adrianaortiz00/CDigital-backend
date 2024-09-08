@@ -25,6 +25,14 @@ public class Role {
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private List<User> users;
 
+    public Role() {
+    }
+
+    public Role(String nameRol, List<User> users) {
+        this.nameRol = nameRol;
+        this.users = users;
+    }
+
     public int getId() {
         return this.id;
     }
