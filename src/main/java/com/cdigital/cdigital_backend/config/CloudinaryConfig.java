@@ -1,4 +1,4 @@
-package com.cdigital.cdigital_backend.config;
+/* package com.cdigital.cdigital_backend.config;
 
 import com.cloudinary.Cloudinary;
 import org.springframework.context.annotation.Bean;
@@ -15,3 +15,4 @@ public class CloudinaryConfig {
         return new Cloudinary(dotenv.get("CLOUDINARY_URL"));
     }
 }
+ */

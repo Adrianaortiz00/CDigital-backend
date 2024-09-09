@@ -17,17 +17,30 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
 public class User implements UserDetails {
 
+
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_seq")
+@SequenceGenerator(name = "users_id_seq", sequenceName = "sequence_name", allocationSize = 1)
+private int id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -45,23 +58,11 @@ public class User implements UserDetails {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    // Constructor sin parámetros
-    public User() {
-    }
-
-    // Constructor con todos los parámetros
-    public User(String name, String email, String password, Role role, List<Courses> courses) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.courses = courses;
-    }
 
     // Implementación de UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.getNameRol().toUpperCase()));
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override

@@ -1,87 +1,98 @@
 package com.cdigital.cdigital_backend.services;
 
-import com.cdigital.cdigital_backend.models.User;
-import com.cdigital.cdigital_backend.models.Role;
-import com.cdigital.cdigital_backend.repositories.UserRepository;
-import com.cdigital.cdigital_backend.repositories.RoleRepository;
-import com.cdigital.cdigital_backend.security.AuthResponse;
-import com.cdigital.cdigital_backend.security.LoginRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.cdigital.cdigital_backend.controllers.AuthResponse;
+import com.cdigital.cdigital_backend.controllers.LoginRequest;
+import com.cdigital.cdigital_backend.controllers.RegisterRequest;
+import com.cdigital.cdigital_backend.errors.ExistingEmailError;
+import com.cdigital.cdigital_backend.errors.UnauthorizedException;
+import com.cdigital.cdigital_backend.errors.UserNotFoundException;
+import com.cdigital.cdigital_backend.models.User;
+import com.cdigital.cdigital_backend.repositories.UserRepository;
+import com.cdigital.cdigital_backend.security.JwtUtil;
 
+import io.jsonwebtoken.JwtException;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-
-
-    // Método para registrar un nuevo usuario
-    public User registerUser(String name, String email, String password) {
-        Optional<Role> roleOptional = roleRepository.findByNameRol("USER");
-        Role userRole = roleOptional.orElseThrow(() -> new RuntimeException("Role not found"));
-
-        User newUser = new User(name, email, encodePassword(password), userRole, new ArrayList<>());
-        return userRepository.save(newUser);
+    public Optional<User> getUserByID(int id) {
+        return userRepository.findById(id);
     }
 
-    // Método para obtener todos los usuarios
-    public List<User> getAllUsers() {
+    public List<User> getUser() {
         return userRepository.findAll();
     }
 
-    // Método para obtener un usuario por email
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
-    }
-
-    // Método para autenticar un usuario
-    public AuthResponse login(LoginRequest loginRequest) {
-        try {
-            // Realizar la autenticación
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-            );
-
-            // Si la autenticación es exitosa, se puede proceder
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            // Generar un token (este método debe ser implementado según tu lógica)
-            String token = generateToken(userDetails);
-
-            // Crear y retornar la respuesta de autenticación
-            return new AuthResponse(token);
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid credentials");
+    public User addUser(User user) {
+        Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
+        if (existingUser.isPresent()) {
+            throw new ExistingEmailError();
         }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
 
-    // Método para codificar la contraseña
-    public String encodePassword(String password) {
-        return passwordEncoder.encode(password);
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("No existe un usuario con este correo electrónico"));
+        authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        String token = jwtUtil.generateToken(user.getEmail());
+        return AuthResponse.builder()
+                .userId(user.getId())
+                .token(token)
+                .build();
     }
 
-    // Método para generar un token (implementación ejemplo)
-    private String generateToken(UserDetails userDetails) {
-        // Implementar lógica de generación de token JWT o similar
-        return "dummyToken";
+    public AuthResponse register(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new ExistingEmailError();
+        }
+
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .build();
+
+        userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getEmail());
+        return AuthResponse.builder()
+        .userId(user.getId())
+                .token(token)
+                .build();
+    }
+
+    public int getUserId(String token) {
+        try {
+            String user = jwtUtil.extractUsername(token);
+            return userRepository.findByEmail(user)
+                    .orElseThrow(() -> new UnauthorizedException("Usuario no encontrado")).getId();
+
+        } catch (JwtException e) {
+            throw new UnauthorizedException("Token inválido o expirado");
+
+        } catch (NoSuchElementException e) {
+            throw new UserNotFoundException("Usuario no encontrado para el token proporcionado");
+        }
+
     }
 }

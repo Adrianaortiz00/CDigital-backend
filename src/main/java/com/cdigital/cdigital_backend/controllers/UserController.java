@@ -1,44 +1,67 @@
 package com.cdigital.cdigital_backend.controllers;
 
-import com.cdigital.cdigital_backend.models.User;
-import com.cdigital.cdigital_backend.security.AuthResponse;
-import com.cdigital.cdigital_backend.security.LoginRequest;
-import com.cdigital.cdigital_backend.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cdigital.cdigital_backend.errors.ExistingEmailError;
+import com.cdigital.cdigital_backend.models.User;
+import com.cdigital.cdigital_backend.services.UserService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    
+    @PostMapping
+    public ResponseEntity<User> addUser(@RequestBody User userRequest) {
+        try {
+            User user = userService.addUser(userRequest);
+            return ResponseEntity.ok(user);
+        } catch (ExistingEmailError e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
 
     @GetMapping
-    public ResponseEntity<List<User>> getUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<User>> getUser() {
+        return ResponseEntity.ok(userService.getUser());
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerUser(@RequestParam String name,
-                                                            @RequestParam String email,
-                                                            @RequestParam String password) {
-        String encodedPassword = userService.encodePassword(password);
-        userService.registerUser(name, email, encodedPassword);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "User registered successfully");
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
-        AuthResponse response = userService.login(loginRequest);
-        return ResponseEntity.ok(response);
+        try {
+            AuthResponse response = userService.login(loginRequest);
+            return ResponseEntity.ok(response);
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+        try {
+            AuthResponse response = userService.register(request);
+            return ResponseEntity.ok(response);
+        } catch (ExistingEmailError e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
 }
+

@@ -1,5 +1,7 @@
 package com.cdigital.cdigital_backend.security;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import java.util.List;
 
 @Component
 public class JwtUtil {
@@ -24,10 +27,12 @@ public class JwtUtil {
         this.SECRET_KEY = dotenv.get("JWT_SECRET_KEY");
     }
 
-    public String generateToken(UserDetails userDetails) {
+      public String generateToken(String email) {
+        List<GrantedAuthority> grantedAuthorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .claim("authorities", userDetails.getAuthorities().stream()
+        .setId("userJWT")
+        .setSubject(email)
+                .claim("authorities", grantedAuthorities.stream()
                         .map(authority -> authority.getAuthority())
                         .collect(Collectors.toList()))
                 .setIssuedAt(new Date())
