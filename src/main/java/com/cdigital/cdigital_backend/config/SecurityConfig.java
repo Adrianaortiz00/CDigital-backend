@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,15 +29,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter,
             AuthenticationProvider authenticationProvider) throws Exception {
-        http
+        http    
+        .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         //.requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/users/login").permitAll()
                         .requestMatchers("/api/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/courses").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/courses/edit").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/courses").hasRole("ADMIN") 
+                        .requestMatchers(HttpMethod.POST, "/api/courses").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasRole("ADMIN") 
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -73,7 +76,7 @@ public class SecurityConfig {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:5173")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedHeaders("*")
+                        .allowedHeaders("Content-Type", "accept", "Authorization")
                         .allowCredentials(true);
             }
         };

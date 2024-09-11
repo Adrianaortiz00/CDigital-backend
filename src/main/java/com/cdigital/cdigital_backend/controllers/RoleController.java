@@ -21,7 +21,12 @@ import com.cdigital.cdigital_backend.services.RoleService;
 @RequestMapping("/roles")
 public class RoleController {
 
-    private RoleService roleService;
+    private final RoleService roleService;
+
+        // Inyección de dependencias a través del constructor
+        public RoleController(RoleService roleService) {
+            this.roleService = roleService;
+        }
 
     @GetMapping
     public ResponseEntity<List<Role>> getAllRoles() {

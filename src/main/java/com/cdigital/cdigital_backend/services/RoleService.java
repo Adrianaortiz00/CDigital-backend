@@ -3,9 +3,12 @@ package com.cdigital.cdigital_backend.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Service;
+
 import com.cdigital.cdigital_backend.models.Role;
 import com.cdigital.cdigital_backend.repositories.RoleRepository;
 
+@Service
 public class RoleService {
 
     

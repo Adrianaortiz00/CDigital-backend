@@ -25,16 +25,6 @@ public class UserController {
     private final UserService userService;
 
     
-    @PostMapping
-    public ResponseEntity<User> addUser(@RequestBody User userRequest) {
-        try {
-            User user = userService.addUser(userRequest);
-            return ResponseEntity.ok(user);
-        } catch (ExistingEmailError e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-    }
-
     @GetMapping
     public ResponseEntity<List<User>> getUser() {
         return ResponseEntity.ok(userService.getUser());
@@ -42,9 +32,9 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> login(@RequestBody User user) {
         try {
-            AuthResponse response = userService.login(loginRequest);
+            AuthResponse response = userService.login(user);
             return ResponseEntity.ok(response);
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -54,7 +44,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@RequestBody User request) {
         try {
             AuthResponse response = userService.register(request);
             return ResponseEntity.ok(response);

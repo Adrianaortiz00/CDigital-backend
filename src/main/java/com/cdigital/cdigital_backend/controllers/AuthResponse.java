@@ -10,21 +10,6 @@ public class AuthResponse {
 
     private Integer userId;
     private String token;
+    private String userRole; 
 
-    public AuthResponse(Integer userId, String token) {
-        this.userId = userId;
-        this.token = token;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
 }

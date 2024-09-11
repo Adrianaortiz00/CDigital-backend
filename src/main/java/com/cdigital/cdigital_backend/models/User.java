@@ -1,8 +1,8 @@
 package com.cdigital.cdigital_backend.models;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,7 +26,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -35,12 +34,10 @@ import lombok.NoArgsConstructor;
 @Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
 public class User implements UserDetails {
 
-
-
     @Id
-@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_seq")
-@SequenceGenerator(name = "users_id_seq", sequenceName = "sequence_name", allocationSize = 1)
-private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_seq")
+    @SequenceGenerator(name = "users_id_seq", sequenceName = "sequence_name", allocationSize = 1)
+    private int id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -52,17 +49,15 @@ private int id;
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Courses> courses = new ArrayList<>();
+    private Set<Courses> courses;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
-
-    // Implementación de UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority(role.getNameRol()));
     }
 
     @Override

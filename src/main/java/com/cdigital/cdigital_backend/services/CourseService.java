@@ -14,11 +14,14 @@ import jakarta.transaction.Transactional;
 @Service
 public class CourseService {
 
-    
-    private CourseRepository courseRepository;
+    private final CourseRepository courseRepository;
 
-    
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public CourseService(CourseRepository courseRepository, UserRepository userRepository) {
+        this.courseRepository = courseRepository;
+        this.userRepository = userRepository;
+    }
 
     public List<Courses> getAllCourses() {
         return courseRepository.findAll();
@@ -38,7 +41,8 @@ public class CourseService {
 
     @Transactional
     public Courses updateCourse(int courseId, String title, String description, String videoUrl) {
-        Courses course = courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Course not found"));
+        Courses course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
         course.setTitle(title);
         course.setDescription(description);
         course.setVideo(videoUrl);
