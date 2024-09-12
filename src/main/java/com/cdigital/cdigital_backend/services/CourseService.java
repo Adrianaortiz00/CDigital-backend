@@ -5,9 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.cdigital.cdigital_backend.models.Courses;
-import com.cdigital.cdigital_backend.models.User;
 import com.cdigital.cdigital_backend.repositories.CourseRepository;
-import com.cdigital.cdigital_backend.repositories.UserRepository;
+
 
 import jakarta.transaction.Transactional;
 
@@ -16,11 +15,9 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
 
-    private final UserRepository userRepository;
 
-    public CourseService(CourseRepository courseRepository, UserRepository userRepository) {
+    public CourseService(CourseRepository courseRepository) {
         this.courseRepository = courseRepository;
-        this.userRepository = userRepository;
     }
 
     public List<Courses> getAllCourses() {
@@ -28,9 +25,8 @@ public class CourseService {
     }
 
     @Transactional
-    public Courses createCourse(String title, String description, String videoUrl, int userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        Courses newCourse = new Courses(title, description, user, videoUrl);
+    public Courses createCourse(String title, String description, String videoUrl) {
+        Courses newCourse = new Courses(title, description, videoUrl);
         return courseRepository.save(newCourse);
     }
 

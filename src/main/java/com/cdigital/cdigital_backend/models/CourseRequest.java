@@ -1,4 +1,4 @@
-package com.cdigital.cdigital_backend.controllers;
+package com.cdigital.cdigital_backend.models;
 
 public class CourseRequest {
     private String title;

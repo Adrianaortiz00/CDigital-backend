@@ -29,7 +29,7 @@ public class Courses {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "id_user", nullable = false)
+    @JoinColumn(name = "id_user")
     @JsonIgnore
     private User user;
 
@@ -46,6 +46,13 @@ public class Courses {
         this.description = description;
         this.user = user;
         this.video = video;
+    }
+
+    public Courses(String title2, String description2, String videoUrl) {
+        this.title = title2;
+        this.description = description2;
+        this.video = videoUrl;
+
     }
 
     // getters and setters

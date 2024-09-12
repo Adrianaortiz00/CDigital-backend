@@ -23,10 +23,10 @@ public class RoleController {
 
     private final RoleService roleService;
 
-        // Inyección de dependencias a través del constructor
-        public RoleController(RoleService roleService) {
-            this.roleService = roleService;
-        }
+    // Inyección de dependencias a través del constructor
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @GetMapping
     public ResponseEntity<List<Role>> getAllRoles() {
