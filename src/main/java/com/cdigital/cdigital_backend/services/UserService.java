@@ -11,12 +11,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.cdigital.cdigital_backend.controllers.AuthResponse;
-import com.cdigital.cdigital_backend.controllers.LoginRequest;
-import com.cdigital.cdigital_backend.controllers.RegisterRequest;
 import com.cdigital.cdigital_backend.errors.ExistingEmailError;
 import com.cdigital.cdigital_backend.errors.UnauthorizedException;
 import com.cdigital.cdigital_backend.errors.UserNotFoundException;
+import com.cdigital.cdigital_backend.models.Role;
 import com.cdigital.cdigital_backend.models.User;
+import com.cdigital.cdigital_backend.repositories.RoleRepository;
 import com.cdigital.cdigital_backend.repositories.UserRepository;
 import com.cdigital.cdigital_backend.security.JwtUtil;
 
@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class UserService {
 
+    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -49,30 +50,37 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(User request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("No existe un usuario con este correo electrónico"));
         authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         String token = jwtUtil.generateToken(user.getEmail());
+        String userRole = user.getRole() != null ? user.getRole().getNameRol() : "ROLE_USER";
+
         return AuthResponse.builder()
                 .userId(user.getId())
                 .token(token)
+                .userRole(userRole)
                 .build();
     }
 
-    public AuthResponse register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+    public AuthResponse register(User user) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new ExistingEmailError();
         }
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+        Role userRole = roleRepository.findByNameRol("ROLE_USER")
+        .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        User newUser = User.builder()
+                .name(user.getName())
+                .email(user.getEmail())
+                .password(passwordEncoder.encode(user.getPassword()))
+                .role(userRole)
                 .build();
 
-        userRepository.save(user);
+        userRepository.save(newUser);
 
         String token = jwtUtil.generateToken(user.getEmail());
         return AuthResponse.builder()

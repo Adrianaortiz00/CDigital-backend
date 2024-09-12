@@ -1,5 +1,7 @@
 package com.cdigital.cdigital_backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
+
+@Data
 
 @Entity
 @Table(name = "courses")
@@ -24,7 +29,8 @@ public class Courses {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "id_user", nullable = false)
+    @JoinColumn(name = "id_user")
+    @JsonIgnore
     private User user;
 
     @Column(name = "video", nullable = false)
@@ -40,6 +46,13 @@ public class Courses {
         this.description = description;
         this.user = user;
         this.video = video;
+    }
+
+    public Courses(String title2, String description2, String videoUrl) {
+        this.title = title2;
+        this.description = description2;
+        this.video = videoUrl;
+
     }
 
     // getters and setters
